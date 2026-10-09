@@ -1,6 +1,6 @@
-import json, re, time
+import json, re, hashlib
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 
@@ -10,127 +10,100 @@ ROOT = Path(__file__).resolve().parents[1]
 ARCHIVE = ROOT / "archive.json"
 IMG_DIR = ROOT / "images"
 
-session = requests.Session()
-session.headers.update({
-    "User-Agent": "Mozilla/5.0 (compatible; PoreParkArchive/1.0)"
+S = requests.Session()
+S.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154 Safari/537.36"
 })
 
-def get(url):
-    r = session.get(url, timeout=30)
+def fetch(url):
+    r = S.get(url, timeout=40)
     r.raise_for_status()
     r.encoding = r.apparent_encoding or r.encoding
-    return r.text
+    return r
 
-def extract_candidates(html):
-    soup = BeautifulSoup(html, "html.parser")
-    urls = []
-
-    # 현재 페이지가 가리키는 공사진행 상세 URL 후보
-    for a in soup.select("a[href]"):
-        href = a.get("href", "")
-        full = urljoin(BASE, href)
-        if "construction-view.aspx" in full and "Pkey=1077" in full:
-            urls.append(full)
-
-    # 현재 페이지 자체도 후보
-    urls.append(INDEX_URL)
-
-    # 중복 제거
-    out = []
-    seen = set()
-    for u in urls:
-        if u not in seen:
-            seen.add(u); out.append(u)
-    return out
-
-def bbs_no(url):
-    m = re.search(r"(?:[?&])bbsNo=(\d+)", url, re.I)
-    return m.group(1) if m else None
-
-def month_from_text(text):
-    # "2026년 8월 말 기준" 등
-    m = re.search(r"(20\d{2})\s*년\s*(\d{1,2})\s*월", text)
-    if m:
-        return f"{m.group(1)}-{int(m.group(2)):02d}"
-    # 파일명 등에 있는 YYYYMM
-    m = re.search(r"(20\d{2})(0[1-9]|1[0-2])", text)
+def get_month(text):
+    # 현재 페이지는 "2026-09 2026-08월 촬영"처럼 표시하고,
+    # 본문에는 "2026년 8월 말 기준"이 표시됨.
+    m = re.search(r"\b(20\d{2})-(0[1-9]|1[0-2])\b", text)
     if m:
         return f"{m.group(1)}-{m.group(2)}"
+    m = re.search(r"(20\d{2})\s*년\s*(0?[1-9]|1[0-2])\s*월", text)
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}"
     return None
 
-def find_image(detail_html, detail_url):
-    soup = BeautifulSoup(detail_html, "html.parser")
+def find_current_image(html):
+    soup = BeautifulSoup(html, "html.parser")
     candidates = []
     for tag in soup.select("img[src], a[href]"):
-        u = tag.get("src") or tag.get("href")
-        if not u: continue
-        full = urljoin(BASE, u)
-        low = full.lower()
-        if "/aptimage/" in low and re.search(r"\.(png|jpe?g|webp)(?:\?|$)", low):
-            candidates.append(full)
-    # 페이지 안의 aptimage 후보 중 큰 원본을 우선할 수 있도록 순서를 유지
-    return candidates[0] if candidates else None
+        raw = tag.get("src") or tag.get("href")
+        if not raw:
+            continue
+        u = urljoin(BASE, raw)
+        if "/aptimage/" in u.lower() and re.search(r"\.(png|jpe?g|webp)(?:\?.*)?$", u, re.I):
+            candidates.append(u)
+    # 현재 페이지의 본문 이미지가 첫 후보인 구조를 우선 사용.
+    # 여러 개라면 /aptimage/ 이미지 중 파일명에 날짜가 있는 후보를 우선.
+    dated = [u for u in candidates if re.search(r"20\d{4,}", u)]
+    return (dated[0] if dated else candidates[0]) if candidates else None
 
 def main():
-    old = json.loads(ARCHIVE.read_text(encoding="utf-8")) if ARCHIVE.exists() else []
-    known = {str(x.get("bbsNo")) for x in old if x.get("bbsNo")}
+    archive = json.loads(ARCHIVE.read_text(encoding="utf-8")) if ARCHIVE.exists() else []
+    known_urls = {x.get("sourceImageUrl") for x in archive if x.get("sourceImageUrl")}
 
-    index_html = get(INDEX_URL)
-    candidates = extract_candidates(index_html)
+    page = fetch(INDEX_URL)
+    soup = BeautifulSoup(page.text, "html.parser")
+    text = soup.get_text(" ", strip=True)
 
-    # 최신 게시물을 먼저 처리하기 위해 bbsNo가 존재하는 후보를 순서대로 확인
-    detail = None
-    for u in candidates:
-        n = bbs_no(u)
-        if n:
-            try:
-                html = get(u)
-                detail = (u, n, html)
-                # 인덱스에서 발견된 첫 상세 URL을 최신 후보로 사용
-                break
-            except Exception:
-                pass
+    image_url = find_current_image(page.text)
+    if not image_url:
+        raise RuntimeError("Pkey=1077 페이지에서 /aptimage/ 공사진행 이미지를 찾지 못했습니다.")
 
-    if not detail:
-        raise RuntimeError("Pkey=1077의 공사진행 상세 게시물을 찾지 못했습니다.")
-
-    url, n, html = detail
-
-    if n in known:
-        print(f"No new BBSno: {n}")
+    if image_url in known_urls:
+        print("No new construction image.")
+        print("Current image:", image_url)
         return
 
-    soup = BeautifulSoup(html, "html.parser")
-    text = soup.get_text(" ", strip=True)
-    month = month_from_text(text) or month_from_text(url) or time.strftime("%Y-%m")
+    month = get_month(text)
+    if not month:
+        # 이미지 URL의 YYYYMM에서 마지막 안전망
+        m = re.search(r"(20\d{2})(0[1-9]|1[0-2])", image_url)
+        if m:
+            month = f"{m.group(1)}-{m.group(2)}"
+    if not month:
+        raise RuntimeError("새 이미지의 기준월을 판별하지 못했습니다.")
 
-    image_url = find_image(html, url)
-    if not image_url:
-        raise RuntimeError(f"새 게시물 {n}에서 /aptimage/ 이미지를 찾지 못했습니다.")
-
-    ext = Path(urlparse(image_url).path).suffix.lower() or ".png"
-    filename = f"{month}{ext}"
-    target = IMG_DIR / filename
-
-    # 같은 월 파일이 이미 있다면 덮어쓰지 않고 안전하게 별도 파일 생성
+    ext = Path(image_url.split("?",1)[0]).suffix.lower() or ".png"
+    target = IMG_DIR / f"{month}{ext}"
     if target.exists():
-        filename = f"{month}-bbs{n}{ext}"
-        target = IMG_DIR / filename
+        # 같은 월에 다른 이미지가 올라오는 경우 기존 파일 보존
+        short = hashlib.sha1(image_url.encode()).hexdigest()[:8]
+        target = IMG_DIR / f"{month}-{short}{ext}"
 
-    data = session.get(image_url, timeout=60)
-    data.raise_for_status()
-    target.write_bytes(data.content)
+    img = S.get(image_url, timeout=90)
+    img.raise_for_status()
+    target.write_bytes(img.content)
 
-    old.append({
+    # 설명은 본문에서 해당 월의 공사진행 문장을 간단히 보존
+    description = f"{month} 공사진행 사진"
+    m = re.search(r"(20\d{2}년\s*\d{1,2}월\s*말\s*기준\s*공사\s*진행현황)", text)
+    if m:
+        description = m.group(1)
+
+    archive.append({
         "month": month,
-        "bbsNo": n,
-        "image": f"images/{filename}",
-        "sourceUrl": url,
-        "description": f"{month.replace('-', '년 ')}월 공사진행"
+        "image": f"images/{target.name}",
+        "sourceUrl": INDEX_URL,
+        "sourceImageUrl": image_url,
+        "description": description
     })
-    old.sort(key=lambda x: x.get("month",""))
-    ARCHIVE.write_text(json.dumps(old, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Added {month} / BBSno {n} / {target}")
+    archive.sort(key=lambda x: x.get("month",""))
+    ARCHIVE.write_text(json.dumps(archive, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    print("NEW IMAGE SAVED")
+    print("month:", month)
+    print("image:", image_url)
+    print("saved:", target)
 
 if __name__ == "__main__":
     main()
