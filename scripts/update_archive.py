@@ -50,6 +50,7 @@ def find_current_image(html):
 def main():
     archive = json.loads(ARCHIVE.read_text(encoding="utf-8")) if ARCHIVE.exists() else []
     known_urls = {x.get("sourceImageUrl") for x in archive if x.get("sourceImageUrl")}
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
 
     page = fetch(INDEX_URL)
     soup = BeautifulSoup(page.text, "html.parser")
@@ -60,9 +61,23 @@ def main():
         raise RuntimeError("Pkey=1077 페이지에서 /aptimage/ 공사진행 이미지를 찾지 못했습니다.")
 
     if image_url in known_urls:
-        print("No new construction image.")
-        print("Current image:", image_url)
-        return
+        # 이미 archive.json에 등록된 이미지라도 실제 파일이 없으면 복구합니다.
+        existing = next((x for x in archive if x.get("sourceImageUrl") == image_url), None)
+        if existing and existing.get("image"):
+            target = ROOT / existing["image"]
+            if target.exists():
+                print("No new construction image.")
+                print("Current image:", image_url)
+                return
+
+            target.parent.mkdir(parents=True, exist_ok=True)
+            print("Known image is missing locally. Downloading it again...")
+            img = S.get(image_url, timeout=90)
+            img.raise_for_status()
+            target.write_bytes(img.content)
+            print("RESTORED IMAGE")
+            print("saved:", target)
+            return
 
     month = get_month(text)
     if not month:
@@ -74,6 +89,7 @@ def main():
         raise RuntimeError("새 이미지의 기준월을 판별하지 못했습니다.")
 
     ext = Path(image_url.split("?",1)[0]).suffix.lower() or ".png"
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
     target = IMG_DIR / f"{month}{ext}"
     if target.exists():
         # 같은 월에 다른 이미지가 올라오는 경우 기존 파일 보존
