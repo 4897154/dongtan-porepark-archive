@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</title>
+<style>
+body{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;max-width:1000px;margin:40px auto;padding:0 18px;line-height:1.5}
+h1{font-size:24px}.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:20px 0}
+button,select{padding:9px 12px;font-size:15px}
+img{max-width:100%;display:block;border:1px solid #ddd}
+.meta{color:#666;font-size:14px;margin:10px 0 20px}
+.note{background:#f5f7fb;padding:12px;border-radius:8px}
+</style>
+</head>
+<body>
+<h1>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</h1>
+<div class="note">PRUGIO 공사진행 페이지의 월별 게시물을 자동으로 수집해 보관하는 개인용 아카이브입니다.</div>
+<div class="bar">
+<select id="month"></select>
+<button id="prev">← 이전</button>
+<button id="next">다음 →</button>
+<a id="source" target="_blank" rel="noopener">원문 보기</a>
+</div>
+<div id="meta" class="meta"></div>
+<img id="photo" alt="공사진행 사진">
+<script>
+let data=[];
+let i=0;
+async function load(){
+  const r=await fetch('archive.json?'+Date.now());
+  data=await r.json();
+  data.sort((a,b)=>a.month.localeCompare(b.month));
+  const s=document.getElementById('month');
+  s.innerHTML='';
+  data.forEach((x,n)=>{const o=document.createElement('option');o.value=n;o.textContent=x.month;s.appendChild(o)});
+  s.onchange=()=>{i=+s.value;render()};
+  render();
+}
+function render(){
+  if(!data.length)return;
+  i=Math.max(0,Math.min(i,data.length-1));
+  document.getElementById('month').value=i;
+  const x=data[i];
+  document.getElementById('photo').src=x.image+'?'+Date.now();
+  document.getElementById('meta').textContent=`기준월: ${x.month} · BBS No.: ${x.bbsNo||'-'} · ${x.description||''}`;
+  document.getElementById('source').href=x.sourceUrl;
+  document.getElementById('prev').disabled=i===0;
+  document.getElementById('next').disabled=i===data.length-1;
+}
+document.getElementById('prev').onclick=()=>{if(i>0){i--;render()}};
+document.getElementById('next').onclick=()=>{if(i<data.length-1){i++;render()}};
+load();
+</script>
+</body>
+</html>
