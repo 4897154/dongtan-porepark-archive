@@ -11,6 +11,10 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+      MAIL_TO: ${{ secrets.MAIL_TO }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +28,56 @@ jobs:
         run: pip install requests beautifulsoup4
 
       - name: Check PRUGIO and save a new month
+        id: detect
         run: python scripts/update_archive.py
+
+      - name: Verify Gmail settings for a new image
+        if: steps.detect.outputs.new_image == 'true'
+        shell: bash
+        run: |
+          if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ] || [ -z "$MAIL_TO" ]; then
+            echo "::error::New photo found, but Gmail Secrets are missing. Set MAIL_USERNAME, MAIL_PASSWORD, and MAIL_TO in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Send Gmail notification
+        if: steps.detect.outputs.new_image == 'true'
+        env:
+          NEW_MONTH: ${{ steps.detect.outputs.month }}
+          NEW_IMAGE: ${{ steps.detect.outputs.image }}
+          SOURCE_IMAGE_URL: ${{ steps.detect.outputs.source_image_url }}
+        run: |
+          python - <<'PY'
+          import os
+          import smtplib
+          from email.message import EmailMessage
+
+          username = os.environ["MAIL_USERNAME"].strip()
+          password = os.environ["MAIL_PASSWORD"].replace(" ", "").strip()
+          recipients = os.environ["MAIL_TO"].strip()
+          month = os.environ["NEW_MONTH"]
+          image_path = os.environ["NEW_IMAGE"]
+          source_image_url = os.environ["SOURCE_IMAGE_URL"]
+
+          msg = EmailMessage()
+          msg["Subject"] = f"[동탄 포레파크] {month} 공사사진 업데이트"
+          msg["From"] = username
+          msg["To"] = recipients
+          msg.set_content(
+              "동탄 포레파크 자연앤 푸르지오 공사현황 아카이브에 새 사진이 추가되었습니다.\n\n"
+              f"기준월: {month}\n"
+              f"저장 경로: {image_path}\n"
+              "아카이브: https://4897154.github.io/dongtan-porepark-archive/\n"
+              f"공식 이미지 원문: {source_image_url}\n"
+              "공식 페이지: https://www.prugio.com/construction/construction-view.aspx?Pkey=1077\n"
+          )
+
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as smtp:
+              smtp.login(username, password)
+              smtp.send_message(msg)
+
+          print("Gmail notification sent.")
+          PY
 
       - name: Commit changes if any
         run: |
