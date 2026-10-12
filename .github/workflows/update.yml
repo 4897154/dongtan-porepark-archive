@@ -25,11 +25,14 @@ jobs:
           python-version: "3.x"
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 Pillow
 
       - name: Check PRUGIO and save a new month
         id: detect
         run: python scripts/update_archive.py
+
+      - name: Generate construction timelapse GIF
+        run: python scripts/create_timelapse.py
 
       - name: Send Gmail notification
         if: steps.detect.outputs.new_image == 'true'
@@ -65,6 +68,7 @@ jobs:
               f"기준월: {month}\n"
               f"저장 경로: {image_path}\n"
               "아카이브: https://4897154.github.io/dongtan-porepark-archive/\n"
+              "변천사 GIF: https://4897154.github.io/dongtan-porepark-archive/images/timelapse.gif\n"
               f"공식 이미지 원문: {source_image_url}\n"
               "공식 페이지: https://www.prugio.com/construction/construction-view.aspx?Pkey=1077\n"
           )
@@ -76,10 +80,10 @@ jobs:
           print("Gmail notification sent.")
           PY
 
-      - name: Commit changes if any
+      - name: Commit archive, photos, and timelapse if any
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add archive.json images/
-          git diff --cached --quiet || git commit -m "Update construction archive"
+          git diff --cached --quiet || git commit -m "Update construction archive and timelapse"
           git push
