@@ -1,0 +1,44 @@
+name: Backfill PRUGIO construction history
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/backfill-history.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Discover and download historical construction photos
+        id: backfill
+        run: python scripts/backfill_archive.py
+
+      - name: Commit archive, photos, and report
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add archive.json images/ backfill-report.json
+          git diff --cached --quiet || git commit -m "Backfill historical construction photos"
+          git push
+
+      - name: Check discovery result
+        if: steps.backfill.outputs.discovered == '0'
+        run: |
+          echo "::error::No historic monthly post IDs were found in the live PRUGIO page. See backfill-report.json for diagnostics."
+          exit 1
