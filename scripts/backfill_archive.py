@@ -102,6 +102,38 @@ def run():
     current_image_url = find_main_image(index_html)
     discovered = discover_posts(index_html)
 
+    # Repair month metadata for already-imported historical records. On detail pages,
+    # the first YYYY-MM in page text can be the newest month in the selector, not
+    # the month of the selected post. The per-option month label is the correct value.
+    post_month_by_id = {p["bbsNo"]: p.get("monthLabel") for p in discovered if p.get("monthLabel")}
+    metadata_corrections = []
+    for item in archive:
+        source = item.get("sourceUrl", "")
+        bbs_values = parse_qs(urlparse(source).query).get("bbsNo", [])
+        bbs = bbs_values[0] if bbs_values else None
+        correct_month = post_month_by_id.get(bbs)
+        if not correct_month or not item.get("sourceImageUrl") or not item.get("image"):
+            continue
+        old_path = ROOT / item["image"]
+        ext = Path(urlparse(item["sourceImageUrl"]).path).suffix.lower() or old_path.suffix.lower() or ".png"
+        target_path = IMG_DIR / f"{correct_month}{ext}"
+        if old_path.exists() and old_path.resolve() != target_path.resolve() and target_path.exists():
+            target_path = IMG_DIR / f"{correct_month}-{hashlib.sha1(item['sourceImageUrl'].encode()).hexdigest()[:8]}{ext}"
+        if old_path.exists() and old_path.resolve() != target_path.resolve():
+            old_path.replace(target_path)
+        previous_month = item.get("month")
+        previous_image = item.get("image")
+        item["month"] = correct_month
+        item["image"] = f"images/{target_path.name}"
+        if previous_month != correct_month or previous_image != item["image"]:
+            metadata_corrections.append({
+                "sourceUrl": source,
+                "oldMonth": previous_month,
+                "newMonth": correct_month,
+                "oldImage": previous_image,
+                "newImage": item["image"]
+            })
+
     # Add the most recently known historical ID from the archive work so far;
     # duplicate URLs are filtered after the page is fetched.
     known_ids = {"100015"}
@@ -116,6 +148,7 @@ def run():
         "runAt": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
         "currentImageUrl": current_image_url,
         "discoveredPostIds": discovered,
+        "metadataCorrections": metadata_corrections,
         "processed": [],
         "errors": []
     }
@@ -163,10 +196,10 @@ def run():
                 report["errors"].append({"bbsNo": bbs, "url": url, "error": "No /aptimage/ image found"})
                 continue
             if image_url in known_urls:
-                report["processed"].append({"bbsNo": bbs, "month": month_from_text(text) or post.get("monthLabel"), "imageUrl": image_url, "status": "duplicate-skipped"})
+                report["processed"].append({"bbsNo": bbs, "month": post.get("monthLabel") or month_from_text(text), "imageUrl": image_url, "status": "duplicate-skipped"})
                 continue
 
-            month = month_from_text(text) or post.get("monthLabel")
+            month = post.get("monthLabel") or month_from_text(text)
             # Prefer month parsed from the image upload name only as a final fallback.
             if not month:
                 m = re.search(r"20(\d{2})(0[1-9]|1[0-2])", image_url)
