@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/backfill-history.yml"
+      - "scripts/backfill_archive.py"
   workflow_dispatch:
 
 permissions:
