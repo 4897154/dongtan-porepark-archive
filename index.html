@@ -15,7 +15,7 @@ img{max-width:100%;display:block;border:1px solid #ddd}
 </head>
 <body>
 <h1>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</h1>
-<div class="note">PRUGIO 공사진행 페이지의 월별 게시물을 자동으로 수집해 보관하는 개인용 아카이브입니다.</div>
+<div class="note">PRUGIO 공사진행 페이지를 확인해 월별 기록을 정리하는 개인용 아카이브입니다.</div>
 <div class="bar">
 <select id="month"></select>
 <button id="prev">← 이전</button>
@@ -43,7 +43,7 @@ function render(){
   document.getElementById('month').value=i;
   const x=data[i];
   document.getElementById('photo').src=x.image+'?'+Date.now();
-  document.getElementById('meta').textContent=`기준월: ${x.month} · BBS No.: ${x.bbsNo||'-'} · ${x.description||''}`;
+  document.getElementById('meta').textContent='기준월: '+x.month+' · '+(x.description||'');
   document.getElementById('source').href=x.sourceUrl;
   document.getElementById('prev').disabled=i===0;
   document.getElementById('next').disabled=i===data.length-1;
