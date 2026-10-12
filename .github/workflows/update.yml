@@ -31,22 +31,19 @@ jobs:
         id: detect
         run: python scripts/update_archive.py
 
-      - name: Verify Gmail settings for a new image
-        if: steps.detect.outputs.new_image == 'true'
-        shell: bash
-        run: |
-          if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ] || [ -z "$MAIL_TO" ]; then
-            echo "::error::New photo found, but Gmail Secrets are missing. Set MAIL_USERNAME, MAIL_PASSWORD, and MAIL_TO in Settings > Secrets and variables > Actions."
-            exit 1
-          fi
-
       - name: Send Gmail notification
         if: steps.detect.outputs.new_image == 'true'
+        continue-on-error: true
         env:
           NEW_MONTH: ${{ steps.detect.outputs.month }}
           NEW_IMAGE: ${{ steps.detect.outputs.image }}
           SOURCE_IMAGE_URL: ${{ steps.detect.outputs.source_image_url }}
+        shell: bash
         run: |
+          if [ -z "$MAIL_USERNAME" ] || [ -z "$MAIL_PASSWORD" ] || [ -z "$MAIL_TO" ]; then
+            echo "::warning::A new photo was found, but Gmail Secrets are not configured. Add MAIL_USERNAME, MAIL_PASSWORD, and MAIL_TO under Settings > Secrets and variables > Actions to enable email alerts."
+            exit 0
+          fi
           python - <<'PY'
           import os
           import smtplib
