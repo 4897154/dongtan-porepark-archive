@@ -6,8 +6,16 @@
 <title>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</title>
 <style>
 :root{color-scheme:light}
+*{box-sizing:border-box}
 body{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;max-width:1000px;margin:40px auto;padding:0 18px;line-height:1.55;color:#182033}
 h1{font-size:24px;line-height:1.3}
+.countdown{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 14px;padding:22px 24px;border-radius:14px;background:#153c8a;color:#fff;box-shadow:0 8px 24px rgba(21,60,138,.13)}
+.countdown-label{font-size:13px;color:#d7e4ff;margin-bottom:5px}
+.countdown-date{font-size:21px;font-weight:750}
+.countdown-right{text-align:right;flex-shrink:0}
+.countdown-dday{font-size:34px;line-height:1.1;font-weight:850;font-variant-numeric:tabular-nums}
+.countdown-remaining{font-size:15px;color:#e5edff;margin-top:7px;font-variant-numeric:tabular-nums}
+.countdown-footnote{font-size:12px;color:#65718a;margin:0 2px 20px}
 .bar,.viewbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:18px 0}
 button,select{padding:10px 13px;font-size:15px;border:1px solid #cbd2df;border-radius:8px;background:#fff;cursor:pointer}
 button:disabled{opacity:.4;cursor:not-allowed}
@@ -18,19 +26,28 @@ img{max-width:100%;height:auto;display:block;border:1px solid #e1e5ec;border-rad
 .meta{color:#5a6475;font-size:14px;margin:12px 0}
 .note{background:#f5f7fb;padding:12px 14px;border-radius:8px;color:#48546a}
 #photo{width:100%}
-@media(max-width:600px){body{margin:22px auto}h1{font-size:21px}.photo-wrap{padding:6px}}
+@media(max-width:600px){body{margin:18px auto;padding:0 12px}h1{font-size:20px}.countdown{display:block;margin:14px 0 8px;padding:18px 16px}.countdown-date{font-size:18px}.countdown-right{text-align:left;margin-top:14px}.countdown-dday{font-size:32px}.countdown-remaining{font-size:14px}.countdown-footnote{margin-bottom:16px}.viewbar{margin:14px 0}.viewbar button{flex:1}.bar{margin:14px 0}.bar button{flex:1}.bar select{flex:1;min-width:0}.photo-wrap{padding:6px}}
 </style>
 </head>
 <body>
 <h1>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</h1>
+<section class="countdown" aria-label="완공 예정일 카운트다운">
+  <div>
+    <div class="countdown-label">완공 예정일</div>
+    <div class="countdown-date">2028년 7월 1일</div>
+  </div>
+  <div class="countdown-right">
+    <div id="countdownDday" class="countdown-dday">계산 중…</div>
+    <div id="countdownRemaining" class="countdown-remaining">남은 기간을 계산하고 있습니다.</div>
+  </div>
+</section>
+<p class="countdown-footnote">현재 날짜는 한국 시간 기준으로 자동 계산됩니다.</p>
 <div class="note">월별 공사현황을 최신순으로 확인하거나, GIF 타임랩스로 공사 진행 과정을 한 번에 볼 수 있습니다.</div>
-
 <div class="viewbar" role="group" aria-label="보기 방식">
   <button id="showMonth" class="active" type="button">월별 사진</button>
   <button id="showTimeline" type="button">▶ 변천사 GIF 재생</button>
   <a id="source" target="_blank" rel="noopener">공식 원문 보기</a>
 </div>
-
 <div id="monthControls" class="bar">
   <label for="month">기준월</label>
   <select id="month"></select>
@@ -38,80 +55,31 @@ img{max-width:100%;height:auto;display:block;border:1px solid #e1e5ec;border-rad
   <button id="newer" type="button">더 최신 사진 →</button>
 </div>
 <div id="meta" class="meta" aria-live="polite"></div>
-<div class="photo-wrap">
-  <img id="photo" alt="동탄 포레파크 자연앤 푸르지오 공사진행 사진">
-</div>
+<div class="photo-wrap"><img id="photo" alt="동탄 포레파크 자연앤 푸르지오 공사진행 사진"></div>
 <div id="gifHelp" class="meta" hidden>과거 사진부터 최신 사진까지 자동으로 재생합니다. <a href="images/timelapse.gif" target="_blank" rel="noopener">GIF 원본을 새 탭에서 열기</a></div>
-
 <script>
-let data=[];
-let i=0;
-let viewMode='month';
-const photo=document.getElementById('photo');
-const source=document.getElementById('source');
-const meta=document.getElementById('meta');
-const monthControls=document.getElementById('monthControls');
-const showMonth=document.getElementById('showMonth');
-const showTimeline=document.getElementById('showTimeline');
-
-async function load(){
-  const r=await fetch('archive.json?'+Date.now(), {cache:'no-store'});
-  if(!r.ok) throw new Error('archive.json을 불러오지 못했습니다.');
-  data=await r.json();
-  // Newest-first: the latest record is selected on the first page load.
-  data.sort((a,b)=>b.month.localeCompare(a.month));
-  const s=document.getElementById('month');
-  s.innerHTML='';
-  data.forEach((x,n)=>{const o=document.createElement('option');o.value=n;o.textContent=x.month;s.appendChild(o)});
-  s.onchange=()=>{i=+s.value;setMode('month')};
-  document.getElementById('older').onclick=()=>{if(i<data.length-1){i++;renderMonth()}};
-  document.getElementById('newer').onclick=()=>{if(i>0){i--;renderMonth()}};
-  showMonth.onclick=()=>setMode('month');
-  showTimeline.onclick=()=>setMode('timeline');
-  setMode('month');
+let data=[];let i=0;let viewMode='month';
+const photo=document.getElementById('photo'),source=document.getElementById('source'),meta=document.getElementById('meta'),monthControls=document.getElementById('monthControls'),showMonth=document.getElementById('showMonth'),showTimeline=document.getElementById('showTimeline');
+function updateCompletionCountdown(){
+  const target=new Date(Date.UTC(2028,6,1));
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+  const val=n=>Number(parts.find(p=>p.type===n).value);
+  const today=new Date(Date.UTC(val('year'),val('month')-1,val('day'))),dayMs=86400000;
+  const daysLeft=Math.round((target-today)/dayMs),dday=document.getElementById('countdownDday'),remaining=document.getElementById('countdownRemaining');
+  if(daysLeft>0){
+    dday.textContent='D-'+daysLeft;
+    let months=(target.getUTCFullYear()-today.getUTCFullYear())*12+target.getUTCMonth()-today.getUTCMonth();
+    const addMonths=(date,count)=>{const total=date.getUTCFullYear()*12+date.getUTCMonth()+count,year=Math.floor(total/12),month=((total%12)+12)%12,day=Math.min(date.getUTCDate(),new Date(Date.UTC(year,month+1,0)).getUTCDate());return new Date(Date.UTC(year,month,day));};
+    let anchor=addMonths(today,months);if(anchor>target){months--;anchor=addMonths(today,months)}
+    const days=Math.round((target-anchor)/dayMs);remaining.textContent=months+'개월 '+days+'일 남음';
+  }else if(daysLeft===0){dday.textContent='D-DAY';remaining.textContent='오늘이 완공 예정일입니다';}
+  else{dday.textContent='D+'+Math.abs(daysLeft);remaining.textContent='완공 예정일로부터 '+Math.abs(daysLeft)+'일 경과';}
 }
-function setMode(mode){
-  viewMode=mode;
-  showMonth.classList.toggle('active', mode==='month');
-  showTimeline.classList.toggle('active', mode==='timeline');
-  monthControls.hidden=mode==='timeline';
-  document.getElementById('gifHelp').hidden=mode!=='timeline';
-  if(mode==='timeline'){
-    photo.src='images/timelapse.gif?'+Date.now();
-    photo.alt='동탄 포레파크 자연앤 푸르지오 공사진행 변천사 애니메이션';
-    meta.textContent='변천사 타임랩스 · '+data.length+'개월 · '+data[data.length-1].month+' → '+data[0].month;
-    source.href='https://www.prugio.com/construction/construction-view.aspx?Pkey=1077';
-    source.style.display='none';
-  }else{
-    source.style.display='';
-    renderMonth();
-  }
-}
-function renderMonth(){
-  if(!data.length)return;
-  viewMode='month';
-  i=Math.max(0,Math.min(i,data.length-1));
-  document.getElementById('month').value=String(i);
-  const x=data[i];
-  photo.src=x.image+'?'+Date.now();
-  photo.alt=x.month+' 공사진행 사진';
-  meta.textContent='기준월: '+x.month+' · '+(x.description||'');
-  source.href=x.sourceUrl;
-  document.getElementById('older').disabled=i===data.length-1;
-  document.getElementById('newer').disabled=i===0;
-  showMonth.classList.add('active');
-  showTimeline.classList.remove('active');
-  monthControls.hidden=false;
-  document.getElementById('gifHelp').hidden=true;
-}
-photo.addEventListener('error',()=>{
-  if(viewMode==='timeline'){
-    meta.textContent='GIF를 아직 불러오지 못했습니다. 잠시 후 새로고침해 주세요.';
-  }else{
-    meta.textContent='사진을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.';
-  }
-});
-load().catch(err=>{meta.textContent=err.message});
+async function load(){const r=await fetch('archive.json?'+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('archive.json을 불러오지 못했습니다.');data=await r.json();data.sort((a,b)=>b.month.localeCompare(a.month));const s=document.getElementById('month');s.innerHTML='';data.forEach((x,n)=>{const o=document.createElement('option');o.value=n;o.textContent=x.month;s.appendChild(o)});s.onchange=()=>{i=+s.value;setMode('month')};document.getElementById('older').onclick=()=>{if(i<data.length-1){i++;renderMonth()}};document.getElementById('newer').onclick=()=>{if(i>0){i--;renderMonth()}};showMonth.onclick=()=>setMode('month');showTimeline.onclick=()=>setMode('timeline');setMode('month')}
+function setMode(mode){viewMode=mode;showMonth.classList.toggle('active',mode==='month');showTimeline.classList.toggle('active',mode==='timeline');monthControls.hidden=mode==='timeline';document.getElementById('gifHelp').hidden=mode!=='timeline';if(mode==='timeline'){photo.src='images/timelapse.gif?'+Date.now();photo.alt='동탄 포레파크 자연앤 푸르지오 공사진행 변천사 애니메이션';meta.textContent='변천사 타임랩스 · '+data.length+'개월 · '+data[data.length-1].month+' → '+data[0].month;source.href='https://www.prugio.com/construction/construction-view.aspx?Pkey=1077';source.style.display='none'}else{source.style.display='';renderMonth()}}
+function renderMonth(){if(!data.length)return;i=Math.max(0,Math.min(i,data.length-1));document.getElementById('month').value=String(i);const x=data[i];photo.src=x.image+'?'+Date.now();photo.alt=x.month+' 공사진행 사진';meta.textContent='기준월: '+x.month+' · '+(x.description||'');source.href=x.sourceUrl;document.getElementById('older').disabled=i===data.length-1;document.getElementById('newer').disabled=i===0;showMonth.classList.add('active');showTimeline.classList.remove('active');monthControls.hidden=false;document.getElementById('gifHelp').hidden=true}
+photo.addEventListener('error',()=>{meta.textContent=viewMode==='timeline'?'GIF를 아직 불러오지 못했습니다. 잠시 후 새로고침해 주세요.':'사진을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.'});
+updateCompletionCountdown();load().catch(err=>{meta.textContent=err.message});
 </script>
 </body>
 </html>
