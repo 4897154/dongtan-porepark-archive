@@ -2,84 +2,49 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#153c8a">
 <title>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</title>
 <style>
-:root{color-scheme:light}
+:root{color-scheme:light;--blue:#153c8a;--text:#182033;--muted:#65718a;--line:#e5e9f0;--bg:#f6f8fb}
 *{box-sizing:border-box}
-body{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;max-width:1000px;margin:40px auto;padding:0 18px;line-height:1.55;color:#182033}
-h1{font-size:24px;line-height:1.3}
-.countdown{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0 14px;padding:22px 24px;border-radius:14px;background:#153c8a;color:#fff;box-shadow:0 8px 24px rgba(21,60,138,.13)}
-.countdown-label{font-size:13px;color:#d7e4ff;margin-bottom:5px}
-.countdown-date{font-size:21px;font-weight:750}
-.countdown-right{text-align:right;flex-shrink:0}
-.countdown-dday{font-size:34px;line-height:1.1;font-weight:850;font-variant-numeric:tabular-nums}
-.countdown-remaining{font-size:15px;color:#e5edff;margin-top:7px;font-variant-numeric:tabular-nums}
-.countdown-footnote{font-size:12px;color:#65718a;margin:0 2px 20px}
-.bar,.viewbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:18px 0}
-button,select{padding:10px 13px;font-size:15px;border:1px solid #cbd2df;border-radius:8px;background:#fff;cursor:pointer}
-button:disabled{opacity:.4;cursor:not-allowed}
-button.active{background:#153c8a;color:#fff;border-color:#153c8a}
-a{color:#1649a0}
-img{max-width:100%;height:auto;display:block;border:1px solid #e1e5ec;border-radius:6px;margin:0 auto;background:#f5f7fa}
-.photo-wrap{background:#f7f8fb;border:1px solid #e8ebf1;border-radius:12px;padding:12px;min-height:220px}
-.meta{color:#5a6475;font-size:14px;margin:12px 0}
-.note{background:#f5f7fb;padding:12px 14px;border-radius:8px;color:#48546a}
-#photo{width:100%}
-@media(max-width:600px){body{margin:18px auto;padding:0 12px}h1{font-size:20px}.countdown{display:block;margin:14px 0 8px;padding:18px 16px}.countdown-date{font-size:18px}.countdown-right{text-align:left;margin-top:14px}.countdown-dday{font-size:32px}.countdown-remaining{font-size:14px}.countdown-footnote{margin-bottom:16px}.viewbar{margin:14px 0}.viewbar button{flex:1}.bar{margin:14px 0}.bar button{flex:1}.bar select{flex:1;min-width:0}.photo-wrap{padding:6px}}
+html{-webkit-text-size-adjust:100%}
+body{font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;max-width:1000px;margin:40px auto;padding:0 18px;line-height:1.55;color:var(--text);background:#fff}
+h1{font-size:24px;line-height:1.3;margin:0 0 16px;letter-spacing:-.035em}
+.countdown{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:16px 0 8px;padding:22px 24px;border-radius:16px;background:linear-gradient(135deg,#153c8a,#2455a2);color:#fff;box-shadow:0 8px 24px rgba(21,60,138,.14)}
+.countdown-label{font-size:13px;color:#dce7ff;margin-bottom:4px}.countdown-date{font-size:21px;font-weight:750;letter-spacing:-.025em}.countdown-right{text-align:right;flex-shrink:0}.countdown-dday{font-size:35px;line-height:1.05;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-.04em}.countdown-remaining{font-size:15px;color:#e8efff;margin-top:7px;font-variant-numeric:tabular-nums}.countdown-footnote{font-size:12px;color:var(--muted);margin:0 2px 18px}
+.note{background:var(--bg);padding:12px 14px;border-radius:10px;color:#48546a;font-size:14px}.viewbar,.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:16px 0}.viewbar button,.bar button{min-height:42px}button,select{padding:10px 13px;font-size:15px;border:1px solid #cbd2df;border-radius:9px;background:#fff;color:var(--text);cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}button.active{background:var(--blue);color:#fff;border-color:var(--blue)}a{color:#1649a0}
+.meta{color:#5a6475;font-size:14px;margin:12px 0}.photo-wrap{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:220px}img{max-width:100%;height:auto;display:block;border:1px solid #e1e5ec;border-radius:8px;margin:0 auto;background:#f5f7fa}#photo{width:100%}
+@media(max-width:600px){
+ body{margin:0 auto;padding:calc(12px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));max-width:none;background:#fff}
+ h1{font-size:20px;line-height:1.28;margin:4px 2px 14px}
+ .countdown{display:block;margin:0 0 7px;padding:17px 16px;border-radius:15px}
+ .countdown-label{font-size:12px;margin-bottom:2px}.countdown-date{font-size:18px}.countdown-right{text-align:left;margin-top:13px}.countdown-dday{font-size:34px}.countdown-remaining{font-size:14px;margin-top:5px}.countdown-footnote{font-size:11px;margin:0 2px 14px}
+ .note{font-size:13px;line-height:1.5;padding:11px 12px;border-radius:9px}
+ .viewbar{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:12px 0 10px}
+ .viewbar button{width:100%;min-height:44px;padding:9px 6px;font-size:14px}.viewbar a{grid-column:1/-1;text-align:center;font-size:13px;padding:4px}
+ .bar{display:grid;grid-template-columns:auto 1fr;gap:7px;margin:10px 0 12px}.bar label{font-size:13px;color:#5a6475}.bar select{min-width:0;width:100%;height:42px}.bar button{width:100%;font-size:13px;padding:9px 6px}.bar button:nth-of-type(1){grid-column:1/2}.bar button:nth-of-type(2){grid-column:2/3}
+ .meta{font-size:12px;margin:8px 2px;line-height:1.45}.photo-wrap{padding:4px;border-radius:11px;min-height:120px}img{border-radius:7px}
+}
+@media(max-width:360px){body{padding-left:9px;padding-right:9px}h1{font-size:19px}.countdown{padding:15px 14px}.countdown-dday{font-size:31px}.viewbar button{font-size:13px}.bar{grid-template-columns:1fr 1fr}.bar label{grid-column:1/-1}.bar select{grid-column:1/-1}.bar button{grid-column:auto!important}}
 </style>
 </head>
 <body>
 <h1>동탄 포레파크 자연앤 푸르지오 공사진행 아카이브</h1>
-<section class="countdown" aria-label="완공 예정일 카운트다운">
-  <div>
-    <div class="countdown-label">완공 예정일</div>
-    <div class="countdown-date">2028년 7월 1일</div>
-  </div>
-  <div class="countdown-right">
-    <div id="countdownDday" class="countdown-dday">계산 중…</div>
-    <div id="countdownRemaining" class="countdown-remaining">남은 기간을 계산하고 있습니다.</div>
-  </div>
-</section>
+<section class="countdown" aria-label="완공 예정일 카운트다운"><div><div class="countdown-label">완공 예정일</div><div class="countdown-date">2028년 7월 1일</div></div><div class="countdown-right"><div id="countdownDday" class="countdown-dday">계산 중…</div><div id="countdownRemaining" class="countdown-remaining">남은 기간을 계산하고 있습니다.</div></div></section>
 <p class="countdown-footnote">현재 날짜는 한국 시간 기준으로 자동 계산됩니다.</p>
 <div class="note">월별 공사현황을 최신순으로 확인하거나, GIF 타임랩스로 공사 진행 과정을 한 번에 볼 수 있습니다.</div>
-<div class="viewbar" role="group" aria-label="보기 방식">
-  <button id="showMonth" class="active" type="button">월별 사진</button>
-  <button id="showTimeline" type="button">▶ 변천사 GIF 재생</button>
-  <a id="source" target="_blank" rel="noopener">공식 원문 보기</a>
-</div>
-<div id="monthControls" class="bar">
-  <label for="month">기준월</label>
-  <select id="month"></select>
-  <button id="older" type="button">← 더 오래된 사진</button>
-  <button id="newer" type="button">더 최신 사진 →</button>
-</div>
-<div id="meta" class="meta" aria-live="polite"></div>
-<div class="photo-wrap"><img id="photo" alt="동탄 포레파크 자연앤 푸르지오 공사진행 사진"></div>
-<div id="gifHelp" class="meta" hidden>과거 사진부터 최신 사진까지 자동으로 재생합니다. <a href="images/timelapse.gif" target="_blank" rel="noopener">GIF 원본을 새 탭에서 열기</a></div>
+<div class="viewbar" role="group" aria-label="보기 방식"><button id="showMonth" class="active" type="button">월별 사진</button><button id="showTimeline" type="button">▶ 변천사 GIF</button><a id="source" target="_blank" rel="noopener">공식 원문 보기</a></div>
+<div id="monthControls" class="bar"><label for="month">기준월</label><select id="month"></select><button id="older" type="button">← 더 오래된 사진</button><button id="newer" type="button">더 최신 사진 →</button></div>
+<div id="meta" class="meta" aria-live="polite"></div><div class="photo-wrap"><img id="photo" alt="동탄 포레파크 자연앤 푸르지오 공사진행 사진"></div>
+<div id="gifHelp" class="meta" hidden>과거 사진부터 최신 사진까지 자동으로 재생합니다. <a href="images/timelapse.gif" target="_blank" rel="noopener">GIF 원본 열기</a></div>
 <script>
-let data=[];let i=0;let viewMode='month';
-const photo=document.getElementById('photo'),source=document.getElementById('source'),meta=document.getElementById('meta'),monthControls=document.getElementById('monthControls'),showMonth=document.getElementById('showMonth'),showTimeline=document.getElementById('showTimeline');
-function updateCompletionCountdown(){
-  const target=new Date(Date.UTC(2028,6,1));
-  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
-  const val=n=>Number(parts.find(p=>p.type===n).value);
-  const today=new Date(Date.UTC(val('year'),val('month')-1,val('day'))),dayMs=86400000;
-  const daysLeft=Math.round((target-today)/dayMs),dday=document.getElementById('countdownDday'),remaining=document.getElementById('countdownRemaining');
-  if(daysLeft>0){
-    dday.textContent='D-'+daysLeft;
-    let months=(target.getUTCFullYear()-today.getUTCFullYear())*12+target.getUTCMonth()-today.getUTCMonth();
-    const addMonths=(date,count)=>{const total=date.getUTCFullYear()*12+date.getUTCMonth()+count,year=Math.floor(total/12),month=((total%12)+12)%12,day=Math.min(date.getUTCDate(),new Date(Date.UTC(year,month+1,0)).getUTCDate());return new Date(Date.UTC(year,month,day));};
-    let anchor=addMonths(today,months);if(anchor>target){months--;anchor=addMonths(today,months)}
-    const days=Math.round((target-anchor)/dayMs);remaining.textContent=months+'개월 '+days+'일 남음';
-  }else if(daysLeft===0){dday.textContent='D-DAY';remaining.textContent='오늘이 완공 예정일입니다';}
-  else{dday.textContent='D+'+Math.abs(daysLeft);remaining.textContent='완공 예정일로부터 '+Math.abs(daysLeft)+'일 경과';}
-}
+let data=[],i=0,viewMode='month';const photo=document.getElementById('photo'),source=document.getElementById('source'),meta=document.getElementById('meta'),monthControls=document.getElementById('monthControls'),showMonth=document.getElementById('showMonth'),showTimeline=document.getElementById('showTimeline');
+function updateCompletionCountdown(){const target=new Date(Date.UTC(2028,6,1));const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const val=n=>Number(parts.find(p=>p.type===n).value);const today=new Date(Date.UTC(val('year'),val('month')-1,val('day'))),dayMs=86400000,daysLeft=Math.round((target-today)/dayMs),dday=document.getElementById('countdownDday'),remaining=document.getElementById('countdownRemaining');if(daysLeft>0){dday.textContent='D-'+daysLeft;let months=(target.getUTCFullYear()-today.getUTCFullYear())*12+target.getUTCMonth()-today.getUTCMonth();const addMonths=(date,count)=>{const total=date.getUTCFullYear()*12+date.getUTCMonth()+count,year=Math.floor(total/12),month=((total%12)+12)%12,day=Math.min(date.getUTCDate(),new Date(Date.UTC(year,month+1,0)).getUTCDate());return new Date(Date.UTC(year,month,day))};let anchor=addMonths(today,months);if(anchor>target){months--;anchor=addMonths(today,months)}remaining.textContent=months+'개월 '+Math.round((target-anchor)/dayMs)+'일 남음'}else if(daysLeft===0){dday.textContent='D-DAY';remaining.textContent='오늘이 완공 예정일입니다'}else{dday.textContent='D+'+Math.abs(daysLeft);remaining.textContent='완공 예정일로부터 '+Math.abs(daysLeft)+'일 경과'}}
 async function load(){const r=await fetch('archive.json?'+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('archive.json을 불러오지 못했습니다.');data=await r.json();data.sort((a,b)=>b.month.localeCompare(a.month));const s=document.getElementById('month');s.innerHTML='';data.forEach((x,n)=>{const o=document.createElement('option');o.value=n;o.textContent=x.month;s.appendChild(o)});s.onchange=()=>{i=+s.value;setMode('month')};document.getElementById('older').onclick=()=>{if(i<data.length-1){i++;renderMonth()}};document.getElementById('newer').onclick=()=>{if(i>0){i--;renderMonth()}};showMonth.onclick=()=>setMode('month');showTimeline.onclick=()=>setMode('timeline');setMode('month')}
 function setMode(mode){viewMode=mode;showMonth.classList.toggle('active',mode==='month');showTimeline.classList.toggle('active',mode==='timeline');monthControls.hidden=mode==='timeline';document.getElementById('gifHelp').hidden=mode!=='timeline';if(mode==='timeline'){photo.src='images/timelapse.gif?'+Date.now();photo.alt='동탄 포레파크 자연앤 푸르지오 공사진행 변천사 애니메이션';meta.textContent='변천사 타임랩스 · '+data.length+'개월 · '+data[data.length-1].month+' → '+data[0].month;source.href='https://www.prugio.com/construction/construction-view.aspx?Pkey=1077';source.style.display='none'}else{source.style.display='';renderMonth()}}
-function renderMonth(){if(!data.length)return;i=Math.max(0,Math.min(i,data.length-1));document.getElementById('month').value=String(i);const x=data[i];photo.src=x.image+'?'+Date.now();photo.alt=x.month+' 공사진행 사진';meta.textContent='기준월: '+x.month+' · '+(x.description||'');source.href=x.sourceUrl;document.getElementById('older').disabled=i===data.length-1;document.getElementById('newer').disabled=i===0;showMonth.classList.add('active');showTimeline.classList.remove('active');monthControls.hidden=false;document.getElementById('gifHelp').hidden=true}
-photo.addEventListener('error',()=>{meta.textContent=viewMode==='timeline'?'GIF를 아직 불러오지 못했습니다. 잠시 후 새로고침해 주세요.':'사진을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.'});
-updateCompletionCountdown();load().catch(err=>{meta.textContent=err.message});
+function renderMonth(){if(!data.length)return;i=Math.max(0,Math.min(i,data.length-1));document.getElementById('month').value=String(i);const x=data[i];photo.src=x.image+'?'+Date.now();photo.alt=x.month+' 공사진행 사진';meta.textContent='기준월: '+x.month+' · '+(x.description||'');source.href=x.sourceUrl;document.getElementById('older').disabled=i===data.length-1;document.getElementById('newer').disabled=i===0}
+photo.addEventListener('error',()=>{meta.textContent=viewMode==='timeline'?'GIF를 아직 불러오지 못했습니다. 잠시 후 새로고침해 주세요.':'사진을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.'});updateCompletionCountdown();setInterval(updateCompletionCountdown,60000);load().catch(err=>{meta.textContent=err.message});
 </script>
 </body>
 </html>
